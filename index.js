@@ -75,12 +75,10 @@ app.get('/api/persons/:id', (req, res) => {
 });
 
 app.post('/api/persons', (req, res) => {
-
-
     if(!req.body.name || !req.body.number) {
-        res.send(412).end();
+        res.status(412).send({ error: 'Fields are empty'});
     } else if(phonebook.persons.some(person => person.name === req.body.name)) {
-        res.send(409).end();
+        res.status(409).send({ error: 'Name must be unique'});
     } else {
         const newEntry = {...req.body, id: generateID()};
         phonebook.persons = phonebook.persons.concat(newEntry);
@@ -88,7 +86,6 @@ app.post('/api/persons', (req, res) => {
         res.send(newEntry);
     }
 });
-
 
 app.delete('/api/persons/:id', (req, res) => {
     const id = Number(req.params.id);
