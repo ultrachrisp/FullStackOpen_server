@@ -1,5 +1,8 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 const app = express();
+
+app.use(bodyParser.json());
 
 let phonebook = {
     "persons": [
@@ -47,7 +50,11 @@ let phonebook = {
             "number": "39-23-6423122",
             "id": 4
         }
-    ]*/
+        ]*/
+
+function generateID(){
+    return Math.floor(Math.random()* 99999);
+}
 
 app.get('/', (req, res) => {
     res.send('<h1>Hello World!</h1>');
@@ -67,11 +74,27 @@ app.get('/api/persons/:id', (req, res) => {
     }
 });
 
-app.delete('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id);
+app.post('/api/persons', (req, res) => {
+
+
+    if(!req.body.name || !req.body.number) {
+        res.send(412).end();
+    } else if(phonebook.persons.some(person => person.name === req.body.name)) {
+        res.send(409).end();
+    } else {
+        const newEntry = {...req.body, id: generateID()};
+        phonebook.persons = phonebook.persons.concat(newEntry);
+
+        res.send(newEntry);
+    }
+});
+
+
+app.delete('/api/persons/:id', (req, res) => {
+    const id = Number(req.params.id);
     phonebook.persons = phonebook.persons.filter(person => person.id !== id);
 
-    response.status(204).end();
+    res.status(204).end();
 });
 
 app.get('/info', (req, res) => {
