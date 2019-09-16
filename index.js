@@ -1,8 +1,10 @@
 const express = require('express');
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
+// const cors = require('cors');
 const app = express();
 
+// app.use(cors());
 app.use(bodyParser.json());
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'));
 
@@ -81,7 +83,7 @@ app.get('/info', (req, res) => {
     res.send(`<p>Phonebook has info for ${phonebook.persons.length} people.</p><p>${new Date(Date.now())}`);
 });
 
-const PORT = 3001;
+var PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
