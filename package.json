@@ -7,11 +7,11 @@
         "start": "node index.js",
         "watch": "nodemon index.js",
         "test": "echo \"Error: no test specified\" && exit 1"
-  },
+    },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/ultrachrisp/FullStackOpen.git"
-  },
+    },
     "author": "Chris Pyke",
     "license": "MIT",
     "bugs": {
@@ -19,7 +19,8 @@
     },
     "homepage": "https://github.com/ultrachrisp/FullStackOpen#readme",
     "dependencies": {
-        "express": "^4.17.1"
+        "express": "^4.17.1",
+        "mongoose": "^5.7.1"
     },
     "devDependencies": {
         "nodemon": "^1.19.2"
