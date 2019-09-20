@@ -49,20 +49,18 @@ app.get('/', (req, res) => {
 });
 
 app.get('/api/persons', (req, res) => {
-    //res.json(phonebook.persons);
-    Contact.find({}).then(contact => {
-        res.json(contact);
+    Contact.find({}).then(contacts => {
+        res.json(contacts.map(contact => contact.toJSON()));
     });
 });
 
 app.get('/api/persons/:id', (req, res) => {
-    const id = Number(req.params.id);
-    const person = phonebook.persons.find(person => person.id === id);
-    if(person){
-        res.json(person);
-    } else {
-        res.status(404).end();
-    }
+    Contact.findById(req.params.id).then(contact => {
+        res.json(contact.toJSON());
+    }).catch(error => {
+             console.log(error);
+             res.status(404).end();
+    });
 });
 
 app.post('/api/persons', (req, res) => {
