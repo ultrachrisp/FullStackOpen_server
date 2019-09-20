@@ -7,7 +7,7 @@ if ( process.argv.length<3 ) {
 
 const password = process.argv[2];
 
-const url = `mongodb+srv://goTime:${password}@cluster0-ax72n.mongodb.net/phonebook-app?retryWrites=true&w=majority`;
+const url = ``;
 
 mongoose.connect(url, { useNewUrlParser: true });
 

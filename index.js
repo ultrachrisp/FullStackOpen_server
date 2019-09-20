@@ -1,8 +1,10 @@
+require('dotenv').config();
 const express = require('express');
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
 // const cors = require('cors');
 const app = express();
+const Contact = require('./models/contact');
 
 // app.use(cors());
 app.use(bodyParser.json());
@@ -47,7 +49,10 @@ app.get('/', (req, res) => {
 });
 
 app.get('/api/persons', (req, res) => {
-    res.json(phonebook.persons);
+    //res.json(phonebook.persons);
+    Contact.find({}).then(contact => {
+        res.json(contact);
+    });
 });
 
 app.get('/api/persons/:id', (req, res) => {
@@ -84,7 +89,7 @@ app.get('/info', (req, res) => {
     res.send(`<p>Phonebook has info for ${phonebook.persons.length} people.</p><p>${new Date(Date.now())}`);
 });
 
-var PORT = process.env.PORT || 3001;
+var PORT = process.env.PORT;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });

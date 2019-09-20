@@ -84,6 +84,7 @@ yarn-error.log*
 
 .tern-port
 .tern-project
+.env
 
 dist/
 dist_test/
