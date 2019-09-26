@@ -4,8 +4,10 @@ const url = process.env.MONGODB;
 
 console.log('connecting to',url);
 
+mongoose.set('useFindAndModify', false);
+
 mongoose.connect(url, {useNewUrlParser: true})
-    .then(result => {
+    .then(() => {
         console.log('connected to MongoDB');
     })
     .catch(error =>{
@@ -13,8 +15,14 @@ mongoose.connect(url, {useNewUrlParser: true})
     });
 
 const contactSchema = new mongoose.Schema({
-    name: String,
-    number: Number
+    name: {
+        type:String,
+        required: true
+    },
+    number: {
+        type: Number,
+        required: true
+    }
 });
 
 contactSchema.set('toJSON', {

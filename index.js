@@ -1,13 +1,12 @@
-require('dotenv').config();
 const express = require('express');
-const morgan = require('morgan');
 const bodyParser = require('body-parser');
-// const cors = require('cors');
-const app = express();
+const morgan = require('morgan');
+require('dotenv').config();
 const Contact = require('./models/contact');
+// const cors = require('cors');
 
+const app = express();
 // app.use(cors());
-app.use(express.static('build'));
 app.use(bodyParser.json());
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'));
 
@@ -15,24 +14,10 @@ morgan.token('body', function(req, res) {
 	return JSON.stringify({name: req.body.name, number:req.body.number});
 });
 
+app.use(express.static('build'));
+
 app.get('/', (req, res) => {
     res.send('<h1>Hello World!</h1>');
-});
-
-app.get('/api/persons', (req, res, next) => {
-    Contact.find({})
-        .then(contacts => 
-              res.json(contacts.map(contact => contact.toJSON()))
-             )
-        .catch(error => next(error));
-});
-
-app.get('/api/persons/:id', (req, res, next) => {
-    Contact.findById(req.params.id)
-        .then(contact => 
-            res.json(contact.toJSON())
-        )
-        .catch(error => next(error));
 });
 
 app.post('/api/persons', (req, res, next) => {
@@ -49,23 +34,40 @@ app.post('/api/persons', (req, res, next) => {
     
     contact
         .save()
-        .then(savedContact => savedContact.toJSON() )
-        .then(savedAndFormatedContact => res.json(savedAndFormatedContact) )
+        .then(savedContact => res.json(savedContact.toJSON()) )
+        .catch(error => next(error));
+});
+
+app.get('/api/persons', (req, res, next) => {
+    Contact.find({})
+        .then(contacts => res.json(contacts.map(contact => contact.toJSON())) )
+        .catch(error => next(error));
+});
+
+app.get('/api/persons/:id', (req, res, next) => {
+    Contact.findById(req.params.id)
+        .then(contact => res.json(contact.toJSON()) )
+        .catch(error => next(error));
+});
+
+app.put('/api/persons/:id', (req, res, next) => {
+    const update = {
+        name: req.body.name,
+        number: req.body.number
+    };
+
+    Contact.findByIdAndUpdate(req.params.id, update, { new: true })
+        .then(updatedContact => res.json(updatedContact.toJSON() ))
         .catch(error => next(error));
 });
 
 app.delete('/api/persons/:id', (req, res, next) => {
-
     Contact.findByIdAndRemove(req.params.id)
-        .then(() =>
-              res.status(204).end()
-             )
+        .then(() => res.status(204).end() )
         .catch(error => next(error));
-
 });
 
 app.get('/info', (req, res, next) => {
-    
     Contact.find({})
         .then(contacts => 
             res.send(`<p>Phonebook has info for ${contacts.length} people.</p><p>${new Date(Date.now())}`)
@@ -77,7 +79,6 @@ const unknownEndpoint = (req, res) => {
     res.status(404).send({ error: 'unknown endpoint' });
 };
 app.use(unknownEndpoint);
-
 
 const errorHandler = (error, req, res, next) => {
     console.error(error.message);
