@@ -7,85 +7,89 @@ const app = express();
 const Contact = require('./models/contact');
 
 // app.use(cors());
-app.use(bodyParser.json());
 app.use(express.static('build'));
+app.use(bodyParser.json());
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'));
 
 morgan.token('body', function(req, res) {
 	return JSON.stringify({name: req.body.name, number:req.body.number});
 });
 
-let phonebook = {
-    "persons": [
-        {
-            "name": "Arto Hellas",
-            "number": "040-123456",
-            "id": 1
-        },
-        {
-            "name": "Ada Lovelace",
-            "number": "39-44-5323523",
-            "id": 2
-        },
-        {
-            "name": "Dan Abramov",
-            "number": "12-43-234345",
-            "id": 3
-        },
-        {
-            "name": "Mary Poppendieck",
-            "number": "39-23-6423122",
-            "id": 4
-        }
-    ]
-};
-
-function generateID(){
-    return Math.floor(Math.random()* 99999);
-}
-
 app.get('/', (req, res) => {
     res.send('<h1>Hello World!</h1>');
 });
 
-app.get('/api/persons', (req, res) => {
-    Contact.find({}).then(contacts => {
-        res.json(contacts.map(contact => contact.toJSON()));
-    });
+app.get('/api/persons', (req, res, next) => {
+    Contact.find({})
+        .then(contacts => 
+              res.json(contacts.map(contact => contact.toJSON()))
+             )
+        .catch(error => next(error));
 });
 
-app.get('/api/persons/:id', (req, res) => {
-    Contact.findById(req.params.id).then(contact => {
-        res.json(contact.toJSON());
-    }).catch(error => {
-             console.log(error);
-             res.status(404).end();
-    });
+app.get('/api/persons/:id', (req, res, next) => {
+    Contact.findById(req.params.id)
+        .then(contact => 
+            res.json(contact.toJSON())
+        )
+        .catch(error => next(error));
 });
 
-app.post('/api/persons', (req, res) => {
-    if(!req.body.name || !req.body.number) {
+app.post('/api/persons', (req, res, next) => {
+    const { body } = req;
+
+    if(!body.name || !body.number){
         res.status(412).send({ error: 'Fields are empty'});
-    } else if(phonebook.persons.some(person => person.name === req.body.name)) {
-        res.status(409).send({ error: 'Name must be unique'});
-    } else {
-        const newEntry = {...req.body, id: generateID()};
-        phonebook.persons = phonebook.persons.concat(newEntry);
-
-        res.send(newEntry);
     }
+
+    const contact = new Contact({
+        name: body.name,
+        number: body.number
+    });
+    
+    contact
+        .save()
+        .then(savedContact => savedContact.toJSON() )
+        .then(savedAndFormatedContact => res.json(savedAndFormatedContact) )
+        .catch(error => next(error));
 });
 
-app.delete('/api/persons/:id', (req, res) => {
-    const id = Number(req.params.id);
-    phonebook.persons = phonebook.persons.filter(person => person.id !== id);
+app.delete('/api/persons/:id', (req, res, next) => {
 
-    res.status(204).end();
+    Contact.findByIdAndRemove(req.params.id)
+        .then(() =>
+              res.status(204).end()
+             )
+        .catch(error => next(error));
+
 });
 
-app.get('/info', (req, res) => {
-    res.send(`<p>Phonebook has info for ${phonebook.persons.length} people.</p><p>${new Date(Date.now())}`);
+app.get('/info', (req, res, next) => {
+    
+    Contact.find({})
+        .then(contacts => 
+            res.send(`<p>Phonebook has info for ${contacts.length} people.</p><p>${new Date(Date.now())}`)
+        )
+        .catch(error => next(error));
 });
+
+const unknownEndpoint = (req, res) => {
+    res.status(404).send({ error: 'unknown endpoint' });
+};
+app.use(unknownEndpoint);
+
+
+const errorHandler = (error, req, res, next) => {
+    console.error(error.message);
+
+    if(error.name === 'CastError' && error.kind === 'ObjectId'){
+        return res.status(400).send({ error: 'malformatted id'});
+    } else if (error.name === 'ValidationError') {
+        return res.status(400).json({ error: error.message });
+  }
+    return next(error);
+};
+app.use(errorHandler);
 
 var PORT = process.env.PORT;
 app.listen(PORT, () => {
